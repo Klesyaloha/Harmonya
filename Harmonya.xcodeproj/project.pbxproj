@@ -29,9 +29,22 @@
 		76CD42252D91A74C00ABE88E /* HarmonyaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HarmonyaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		76CD426F2DD2242600ABE88E /* Exceptions for "Harmonya" folder in "Harmonya" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 76CD42082D91A74A00ABE88E /* Harmonya */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		76CD420B2D91A74A00ABE88E /* Harmonya */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				76CD426F2DD2242600ABE88E /* Exceptions for "Harmonya" folder in "Harmonya" target */,
+			);
 			path = Harmonya;
 			sourceTree = "<group>";
 		};
@@ -78,6 +91,7 @@
 				76CD420B2D91A74A00ABE88E /* Harmonya */,
 				76CD421E2D91A74C00ABE88E /* HarmonyaTests */,
 				76CD42282D91A74C00ABE88E /* HarmonyaUITests */,
+				76CD42542DD1F2EA00ABE88E /* Frameworks */,
 				76CD420A2D91A74A00ABE88E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +104,13 @@
 				76CD42252D91A74C00ABE88E /* HarmonyaUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		76CD42542DD1F2EA00ABE88E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -195,6 +216,8 @@
 			);
 			mainGroup = 76CD42002D91A74A00ABE88E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 76CD420A2D91A74A00ABE88E /* Products */;
 			projectDirPath = "";
@@ -395,10 +418,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Harmonya/Preview Content\"";
 				DEVELOPMENT_TEAM = UGYM622S92;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Harmonya/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -424,10 +447,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Harmonya/Preview Content\"";
 				DEVELOPMENT_TEAM = UGYM622S92;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Harmonya/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
