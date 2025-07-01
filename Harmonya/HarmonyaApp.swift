@@ -25,8 +25,8 @@ struct HarmonyaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabBar()
+                .environmentObject(UserViewModel())
         }
-        .modelContainer(sharedModelContainer)
     }
 }
