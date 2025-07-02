@@ -6,7 +6,7 @@
 //
 
 // Modèle des champs partiels à mettre à jour
-struct PartialUserUpdate: Codable {
+struct PartialUserUpdate {
     var nameUser: String?
     var surname: String?
     var email: String?

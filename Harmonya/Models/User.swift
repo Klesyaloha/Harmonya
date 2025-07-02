@@ -7,7 +7,7 @@
 
 import Foundation
 
-class User : Codable, ObservableObject, @unchecked Sendable {
+class User : ObservableObject, @unchecked Sendable {
     var id = UUID()
     var nameUser: String
     var email: String

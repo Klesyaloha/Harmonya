@@ -76,7 +76,7 @@ struct CyclesMenuView: View {
                             Ellipse()
                                 .frame(width: 388, height: 280)
                                 .rotationEffect(.degrees(6))
-                                .foregroundStyle(cycle.lightSwiftUIColor)
+                                .foregroundStyle(cycle.lightColor)
                             
                             VStack {
                                 Text("Cycle \(cycle.name)")
@@ -93,7 +93,7 @@ struct CyclesMenuView: View {
                                 Ellipse()
                                     .frame(width: 320.0, height: 265.0)
                                     .rotationEffect(.degrees(6))
-                                    .foregroundStyle(cycle.darkSwiftUIColor)
+                                    .foregroundStyle(cycle.darkColor)
                                     .padding()
                             )
                             .padding(.bottom, 104.197)

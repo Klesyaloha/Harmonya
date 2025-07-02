@@ -8,16 +8,16 @@
 import Foundation
 import SwiftUI
 
-struct Cycle : Codable, Identifiable, Equatable {
+struct Cycle : Identifiable, Equatable {
     var id : UUID = UUID()
     let name: String
     let duration: Int
     var texts : [Paragraph]
-    let lightColor : CodableColor
-    let darkColor : CodableColor
+    let lightColor : Color
+    let darkColor : Color
     
-    // Pour avoir une propriété computed pour récupérer la Color SwiftUI
-    var lightSwiftUIColor: Color { lightColor.swiftUIColor }
-    var darkSwiftUIColor: Color { darkColor.swiftUIColor }
+//    // Pour avoir une propriété computed pour récupérer la Color SwiftUI
+//    var lightSwiftUIColor: Color { lightColor.swiftUIColor }
+//    var darkSwiftUIColor: Color { darkColor.swiftUIColor }
 }
 
