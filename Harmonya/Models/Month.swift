@@ -23,25 +23,24 @@ struct Month {
         let calendar = Calendar.current
         let components = DateComponents(year: year, month: month)
         
-        // Trouver le premier jour du mois
         guard let startDate = calendar.date(from: components),
               let range = calendar.range(of: .day, in: .month, for: startDate) else {
             return []
         }
         
-        // Trouver le jour de la semaine du premier jour du mois (1 = dimanche, 7 = samedi)
-        let weekdayOfFirst = calendar.component(.weekday, from: startDate) // Dimanche = 1, Lundi = 2, etc.
+        // Obtenir le jour de la semaine du premier jour (1 = dimanche, 2 = lundi, ..., 7 = samedi)
+        let weekdayOfFirst = calendar.component(.weekday, from: startDate)
         
-        // Calculer le nombre de jours vides avant le premier jour du mois
-        // Exemple : Si le mois commence un mercredi (3), il faut ajouter 2 jours vides (dimanche et lundi)
-        let leadingEmptyDays = (weekdayOfFirst - 1) % 7
+        // Ajuster pour que le lundi soit le premier jour de la semaine
+        // Si premier jour = dimanche (1), on ajoute 6 jours vides, si lundi (2) on ajoute 0, etc.
+        let leadingEmptyDays = (weekdayOfFirst - calendar.firstWeekday + 7) % 7
         
-        // Ajouter les jours vides (null) avant le début du mois
-        for _ in 0...leadingEmptyDays {
-            result.append(nil) // On ajoute une valeur vide (ou nil selon tes besoins)
+        // Ajouter les jours vides avant le mois
+        for _ in 0..<leadingEmptyDays {
+            result.append(nil)
         }
         
-        // Ajouter les vrais jours du mois
+        // Ajouter les jours du mois
         for day in range {
             if let date = calendar.date(from: DateComponents(year: year, month: month, day: day)) {
                 result.append(Day(date: date))

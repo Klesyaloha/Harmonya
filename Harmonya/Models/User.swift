@@ -11,32 +11,29 @@ class User : Codable, ObservableObject, @unchecked Sendable {
     var id = UUID()
     var nameUser: String
     var email: String
-    var password: String
-    var cycles : [Cycle]
-    var genre: Genre
+    var password: String?
+    var cycles : [String]
     
     init() {
         self.nameUser = "Klesya"
         self.email = "klesya@test.fr"
         self.password = "test"
         self.cycles = []
-        self.genre = .female
     }
     
-    init(id: UUID = UUID(), nameUser: String, email: String, password: String, cycles: [Cycle], genre: Genre) {
+    init(id: UUID = UUID(), nameUser: String, email: String, password: String? = nil, cycles: [String]) {
         self.id = id
         self.nameUser = nameUser
         self.email = email
         self.password = password
         self.cycles = cycles
-        self.genre = genre
     }
     
-    func addCycle(_ newCycle: Cycle) {
+    func addCycle(_ newCycle: String) {
         cycles.append(newCycle)
     }
 
-    func deleteCycle(_ cycle: Cycle) {
+    func deleteCycle(_ cycle: String) {
         if let index = cycles.firstIndex(of: cycle) {
             cycles.remove(at: index)
         }

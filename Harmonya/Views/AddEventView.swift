@@ -9,7 +9,8 @@ import SwiftUI
 
 struct AddEventView: View {
     var date: Date
-    @ObservedObject var manager: CalendarManager
+    @EnvironmentObject var manager: CalendarManager
+    @EnvironmentObject var userViewModel: UserViewModel
     @Environment(\.dismiss) var dismiss
 
     @State private var title = ""
@@ -23,7 +24,11 @@ struct AddEventView: View {
                     Text(formattedDate(date))
                         .foregroundColor(.secondary)
                 }
-
+                
+                Section(header: Text("Symbol")) {
+                    TextField("Entrez un symbole", text: $symbol)
+                }
+                
                 Section(header: Text("Titre")) {
                     TextField("Entrez un titre", text: $title)
                 }
@@ -36,8 +41,22 @@ struct AddEventView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Ajouter") {
-                        let event = Event(title: title, date: date, description: description, symbol: symbol, color: .orange)
-                        manager.addEvent(event)
+                        let newEvent = Event(
+                            userId: userViewModel.currentUser.id,
+                            title: title,
+                            date: date,
+                            description: description,
+                            symbol: symbol,
+                            color: .orange
+                        )
+
+                        Task {
+                            // 1️⃣ Envoi au serveur
+                            await manager.addEventOnServer(newEvent)
+                            // 2️⃣ Recharge les events pour persistance côté UI
+                            await manager.loadEvents(for: userViewModel.currentUser.id)
+                        }
+
                         dismiss()
                     }
                     .disabled(title.isEmpty)
@@ -60,6 +79,8 @@ struct AddEventView: View {
 }
 
 
-//#Preview {
-//    AddEventView()
-//}
+#Preview {
+    AddEventView(date: Date())
+        .environmentObject(CalendarManager())
+        .environmentObject(UserViewModel())
+}

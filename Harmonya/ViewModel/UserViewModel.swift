@@ -10,12 +10,14 @@ import Security
 import SwiftUI
 
 class UserViewModel: ObservableObject, @unchecked Sendable {
-    @Published var currentUser = User(nameUser: "Klesya", email: "klesya@test.fr", password: "test", cycles: [], genre: .female)
+//    @Published var currentUser = User(nameUser: "Klesya", email: "klesya@test.fr", password: "test", cycles: [])
+    @Published var currentUser = User(id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!, nameUser: "", email: "", password: "", cycles: [])
     @Published var originalUser: User?
     
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-    @AppStorage("isLoggedIn") var isLoggedIn: Bool = true
+    @Published var isLoggedIn = false
+    @Published var isLoadingUser = true
     @Published var loginError: String? = nil // Message d'erreur éventuel
     @Published var registrationError: String? = nil // Erreur d'inscription
     @Published var isRegistered: Bool = false // Statut d'inscription
@@ -37,7 +39,7 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        guard let authData = ("\(currentUser.email):\(currentUser.password)").data(using: .utf8)?.base64EncodedString() else {
+        guard let authData = ("\(currentUser.email):\(currentUser.password ?? "")").data(using: .utf8)?.base64EncodedString() else {
             DispatchQueue.main.async {
                 self.loginError = "Erreur lors du codage des identifiants."
             }
@@ -71,6 +73,8 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
                 self.originalUser = self.currentUser.copy()
                 self.isLoggedIn = true
                 self.loginError = nil
+                UserDefaults.standard.set(loginResponse.user.id.uuidString, forKey: "currentUserId")
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
             }
         } catch {
             DispatchQueue.main.async {
@@ -80,63 +84,50 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
     }
     
     func fetchUserData(userID: UUID) async {
-        guard let url = URL(string: "\(baseURL)\(userID.uuidString)") else {
-            DispatchQueue.main.async {
-                self.loginError = "URL invalide ou idUser manquant."
-            }
-            return
-        }
-
+        guard let url = URL(string: "\(baseURL)\(userID.uuidString)") else { return }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        guard let token = KeychainManager.getTokenFromKeychain() else {
-            DispatchQueue.main.async {
-                self.loginError = "Erreur lors de la récupération du token."
-            }
-            return
-        }
+        guard let token = KeychainManager.getTokenFromKeychain() else { return }
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            if let httpResponse = response as? HTTPURLResponse {
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    DispatchQueue.main.async {
-                        self.loginError = "Erreur HTTP : \(httpResponse.statusCode)"
-                    }
-                    // Debug : afficher la réponse brute en cas d'erreur
-                    print("Réponse brute : \(String(data: data, encoding: .utf8) ?? "Non décodable")")
-                    return
-                }
-            }
-
-            // Debug : afficher les données brutes reçues
-            print("Réponse brute : \(String(data: data, encoding: .utf8) ?? "Non décodable")")
-
-            // Vérifier si la réponse contient une erreur explicite
-            if let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
-               let jsonDict = jsonObject as? [String: Any],
-               jsonDict["error"] as? Bool == true {
-                print("Erreur côté serveur : \(jsonDict["reason"] ?? "Raison inconnue")")
+            if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+                print("⚠️ Erreur HTTP : \(httpResponse.statusCode)")
                 return
             }
-
-            // Décoder l'utilisateur
-            let user = try JSONDecoder().decode(User.self, from: data)
-
+            
+            // Décoder JSON **sans ID**
+            let decoder = JSONDecoder()
+            let tempUser = try decoder.decode(TempUser.self, from: data)
+            
             DispatchQueue.main.async {
-                self.currentUser = user
-                print("Utilisateur mis à jour : \(self.currentUser)")
+                // Injecter l'ID correct
+                self.currentUser = User(
+                    id: userID,
+                    nameUser: tempUser.nameUser,
+                    email: tempUser.email,
+                    cycles: tempUser.cycles
+                )
+                self.originalUser = self.currentUser.copy()
+                self.isLoggedIn = true
+                print("✅ Utilisateur chargé : \(self.currentUser.nameUser) - ID: \(self.currentUser.id)")
             }
+            
         } catch {
-            DispatchQueue.main.async {
-                self.loginError = "Erreur : \(error.localizedDescription)"
-            }
+            print("⚠️ Erreur fetchUserData : \(error.localizedDescription)")
         }
+    }
+
+    // Struct temporaire pour décoder JSON sans ID
+    struct TempUser: Decodable {
+        let nameUser: String
+        let email: String
+        let cycles: [String]
     }
 
     
@@ -153,8 +144,7 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
             nameUser: self.currentUser.nameUser,
             email: self.currentUser.email,
             password: self.currentUser.password,
-            cycles: self.currentUser.cycles,
-            genre: self.currentUser.genre
+            cycles: self.currentUser.cycles
         )
         
         do {
@@ -193,6 +183,8 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
         print("Données locales supprimées.")
         isLoggedIn = false
         print(isLoggedIn)
+        UserDefaults.standard.removeObject(forKey: "currentUserId")
+        UserDefaults.standard.set(false, forKey: "isLoggedIn") // persistance manuelle
     }
     
     // Fonction pour mettre à jour l'utilisateur
@@ -209,9 +201,6 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
         }
         if currentUser.cycles != originalUser?.cycles {
             updatedFields.cycles = currentUser.cycles
-        }
-        if currentUser.genre != originalUser?.genre {
-            updatedFields.genre = currentUser.genre
         }
         // Vérification de la connexion avant de commencer la requête
         guard let url = URL(string: "\(baseURL)\(currentUser.id.uuidString)") else {
@@ -246,10 +235,6 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
             return
         }
         
-        // Démarrer l'appel réseau sur un thread d'arrière-plan
-        DispatchQueue.main.async {
-            self.isLoading = true  // Mise à jour de isLoading sur le thread principal
-        }
         do {
             // Effectuer la requête HTTP asynchrone
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -272,13 +257,14 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
                         if let _ = updatedFields.surname { modifiedFields.append("Prénom") }
                         if let _ = updatedFields.email { modifiedFields.append("Email") }
                         if let _ = updatedFields.cycles { modifiedFields.append("Cycles") }
-                        if let _ = updatedFields.genre { modifiedFields.append("Genre") }
                         
-                        self.alertUpdateMessage = "Champs modifiés : " + modifiedFields.joined(separator: ", ")
-                        print(self.showUpdateAlert)
-                        self.objectWillChange.send()
-                        self.showUpdateAlert = true // Afficher l'alerte
-                        print(self.showUpdateAlert)
+                        if !modifiedFields.isEmpty {
+                            self.alertUpdateMessage = "Champs modifiés : " + modifiedFields.joined(separator: ", ")
+                            print(self.showUpdateAlert)
+                            self.objectWillChange.send()
+                            self.showUpdateAlert = true // Afficher l'alerte
+                            print(self.showUpdateAlert)
+                        }
                     }
                 } else {
                     DispatchQueue.main.async {
@@ -295,23 +281,27 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
                 self.errorMessage = "Erreur de connexion: \(error.localizedDescription)"
             }
         }
-        
-        // Terminer le chargement sur le thread principal
-        DispatchQueue.main.async {
-            self.isLoading = false
-        }
     }
     
     // Réinitialiser les données utilisateur en cas de déconnexion
     func clearData() {
-        self.currentUser = User()
-        self.originalUser = User()
+        self.currentUser = User(id: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!, nameUser: "", email: "", password: "", cycles: [])
+        self.originalUser = nil
     }
     
     func changePassword(oldPassword: String, newPassword: String) async {
+        guard let token = KeychainManager.getTokenFromKeychain(), !token.isEmpty else {
+            DispatchQueue.main.async {
+                self.errorMessage = "Token manquant. Veuillez vous reconnecter."
+                print("❌ Aucun token trouvé dans le Keychain")
+            }
+            return
+        }
+
         guard let url = URL(string: "\(baseURL)\(currentUser.id.uuidString)/update-password") else {
             DispatchQueue.main.async {
                 self.errorMessage = "URL invalide."
+                print("❌ URL invalide pour update-password")
             }
             return
         }
@@ -327,34 +317,128 @@ class UserViewModel: ObservableObject, @unchecked Sendable {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-            // Ajouter le token à l'en-tête Authorization
-            guard let token = KeychainManager.getTokenFromKeychain() else {
-                DispatchQueue.main.async {
-                    self.errorMessage = "Erreur lors de la récupération du token."
-                }
-                return
-            }
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") // ✅ token ajouté
             request.httpBody = jsonData
+
+            print("ℹ️ Envoi du mot de passe avec token:", token)
+            print("ℹ️ URL:", url)
 
             let (_, response) = try await URLSession.shared.data(for: request)
 
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+            if let httpResponse = response as? HTTPURLResponse {
+                print("ℹ️ Statut HTTP reçu:", httpResponse.statusCode)
                 DispatchQueue.main.async {
-                    self.alertUpdateMessage = "Mot de passe changé avec succès."
-                    self.showUpdateAlert = true
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self.errorMessage = "Échec du changement de mot de passe."
+                    if httpResponse.statusCode == 200 {
+                        self.alertUpdateMessage = "Mot de passe changé avec succès."
+                        self.showUpdateAlert = true
+                    } else if httpResponse.statusCode == 401 {
+                        self.errorMessage = "Non autorisé. Vérifiez votre connexion."
+                    } else {
+                        self.errorMessage = "Échec du changement de mot de passe. Statut: \(httpResponse.statusCode)"
+                    }
                 }
             }
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Erreur: \(error.localizedDescription)"
+                print("❌ Erreur lors de l'envoi de la requête:", error)
             }
         }
+    }
+    
+    @MainActor
+    func updateUserCycles() async {
+        guard let url = URL(string: "\(baseURL)\(currentUser.id.uuidString)") else {
+            print("❌ URL invalide pour mise à jour des cycles")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Ajouter le token pour autorisation
+        if let token = KeychainManager.getTokenFromKeychain() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        // Créer le corps JSON avec seulement les cycles
+        let body: [String: Any] = ["cycles": currentUser.cycles]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            print("❌ Erreur encodage JSON: \(error)")
+            return
+        }
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                print("✅ Cycles mis à jour sur la base de données")
+            } else {
+                print("❌ Erreur serveur lors de la mise à jour des cycles")
+            }
+        } catch {
+            print("❌ Erreur réseau: \(error)")
+        }
+    }
+    
+    @MainActor
+    func updateUserCyclesOnServer() async {
+        let userId = currentUser.id
+        guard let url = URL(string: "\(baseURL)\(userId.uuidString)") else {
+            print("❌ URL invalide ou ID manquant")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Ajouter le token pour l'authentification
+        if let token = KeychainManager.getTokenFromKeychain() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        // Corps JSON : uniquement les cycles
+        let body: [String: Any] = ["cycles": currentUser.cycles]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            print("❌ Erreur lors de l'encodage JSON : \(error)")
+            return
+        }
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                print("✅ Cycles mis à jour sur le serveur")
+            } else {
+                print("❌ Erreur serveur lors de la mise à jour des cycles")
+            }
+        } catch {
+            print("❌ Erreur réseau : \(error)")
+        }
+    }
+    
+    @MainActor
+    func loadCurrentUserIfLoggedIn() async {
+        if UserDefaults.standard.bool(forKey: "isLoggedIn"),
+           let idString = UserDefaults.standard.string(forKey: "currentUserId"),
+           let userId = UUID(uuidString: idString) {
+            
+            // Charger les données utilisateur AVANT d’activer la session
+            await fetchUserData(userID: userId)
+            
+            if currentUser.id != UUID(uuidString: "00000000-0000-0000-0000-000000000000") {
+                self.isLoggedIn = true
+                print("✅ Utilisateur restauré avec succès : \(currentUser.id)")
+            } else {
+                print("⚠️ Échec du fetch, utilisateur factice utilisé")
+                self.isLoggedIn = false
+            }
+        }
+        self.isLoadingUser = false
     }
 }
 
@@ -364,8 +448,7 @@ extension User {
                     nameUser: self.nameUser,
                     email: self.email,
                     password: self.password,
-                    cycles: self.cycles,
-                    genre: self.genre
+                    cycles: self.cycles
                 )
     }
 }

@@ -30,8 +30,8 @@ class CyclesViewModel: ObservableObject {
                     Paragraph(title: "🌊 Influence sur la Terre", text: "La Lune influence les marées terrestres et pourrait affecter certains rythmes biologiques. Les effets sur l’humeur ou le sommeil sont encore débattus scientifiquement."),
                     Paragraph(title: "💡 Astuce mnémotechnique", text: "Dans l’hémisphère nord : si la lumière est à droite (comme un 'D'), la Lune est en croissance. Si la lumière est à gauche (comme un 'G'), elle est en décroissance.")
                 ],
-                lightColor: CodableColor(red: 0.851, green: 0.8509803921568627, blue: 0.8509803921568627, opacity: 0.5),
-                darkColor: CodableColor(red: 0.792156862745098, green: 0.792156862745098, blue: 0.792156862745098, opacity: 1)
+                lightColor: Color(red: 0.851, green: 0.8509803921568627, blue: 0.8509803921568627, opacity: 0.5),
+                darkColor: Color(red: 0.792156862745098, green: 0.792156862745098, blue: 0.792156862745098, opacity: 1)
             ),
             
             Cycle(
@@ -49,8 +49,8 @@ class CyclesViewModel: ObservableObject {
                     Paragraph(title: "🌍 Hémisphères opposés", text: "Quand c’est l’été dans l’hémisphère nord, c’est l’hiver dans l’hémisphère sud, et vice versa. Les saisons sont donc inversées selon la position sur le globe."),
                     Paragraph(title: "🌼 Symbolique des saisons", text: "Chaque saison porte une énergie symbolique : le printemps = naissance, l’été = pleine expression, l’automne = transformation, l’hiver = repos intérieur.")
                 ],
-                lightColor: CodableColor(red: 0.92, green: 0.8, blue: 0.55, opacity: 0.5),
-                darkColor: CodableColor(red: 0.92, green: 0.8, blue: 0.55, opacity: 1)
+                lightColor: Color(red: 0.92, green: 0.8, blue: 0.55, opacity: 0.5),
+                darkColor: Color(red: 0.92, green: 0.8, blue: 0.55, opacity: 1)
             ),
             Cycle(
                 name: "Genre Féminin",
@@ -63,8 +63,8 @@ class CyclesViewModel: ObservableObject {
                     Paragraph(title: "🔄 Rappel physiologique", text: "Le cycle menstruel moyen dure 28 jours. Il est divisé en 4 phases qui influencent l’humeur, la motivation et l’énergie hormonale."),
                     Paragraph(title: "🌸 Symbolique énergétique", text: "Menstruelle = hiver, Folliculaire = printemps, Ovulation = été, Lutéale = automne. Le cycle est un miroir des saisons internes.")
                 ],
-                lightColor: CodableColor(red: 0.71, green: 0.56, blue: 0.68, opacity: 0.5),
-                darkColor: CodableColor(red: 0.71, green: 0.56, blue: 0.68, opacity: 1)
+                lightColor: Color(red: 0.71, green: 0.56, blue: 0.68, opacity: 0.5),
+                darkColor: Color(red: 0.71, green: 0.56, blue: 0.68, opacity: 1)
             ),
             Cycle(
                 name: "Genre Masculin",
@@ -76,8 +76,8 @@ class CyclesViewModel: ObservableObject {
                     Paragraph(title: "Soir (15h–21h)", text: "L’énergie commence à diminuer. C’est un bon moment pour des échanges sociaux ou une activité douce."),
                     Paragraph(title: "Nuit (21h–6h)", text: "Le corps se régénère. Le repos est essentiel pour stabiliser les niveaux hormonaux et restaurer l’énergie mentale et physique.")
                 ],
-                lightColor: CodableColor(red: 0.53, green: 0.75, blue: 0.82, opacity: 0.5),
-                darkColor: CodableColor(red: 0.53, green: 0.75, blue: 0.82, opacity: 1)
+                lightColor: Color(red: 0.53, green: 0.75, blue: 0.82, opacity: 0.5),
+                darkColor: Color(red: 0.53, green: 0.75, blue: 0.82, opacity: 1)
             )
         ]
     }

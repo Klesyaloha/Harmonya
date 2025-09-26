@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct Paragraph : Codable, Identifiable , Equatable {
+struct Paragraph : Codable, Identifiable , Equatable, Hashable {
     var id: UUID = UUID()
     let title : String
     let text : String

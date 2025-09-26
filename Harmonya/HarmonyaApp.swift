@@ -10,23 +10,35 @@ import SwiftData
 
 @main
 struct HarmonyaApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+    @StateObject var userViewModel = UserViewModel()
+    @StateObject var calendarManager = CalendarManager()
+    @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
+    
     var body: some Scene {
         WindowGroup {
-            TabBar()
-                .environmentObject(UserViewModel())
+            RootView()
+                .environmentObject(userViewModel)
+                .environmentObject(calendarManager)
+        }
+    }
+}
+
+struct RootView: View {
+    @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var calendarManager: CalendarManager
+    
+    var body: some View {
+        Group {
+            if userViewModel.isLoading {
+                ProgressView("Chargement…")
+            } else if userViewModel.isLoggedIn {
+                TabBar()
+            } else {
+                LoginView()
+            }
+        }
+        .task {
+            await userViewModel.loadCurrentUserIfLoggedIn()
         }
     }
 }

@@ -11,6 +11,5 @@ struct PartialUserUpdate: Codable {
     var surname: String?
     var email: String?
     var password: String?
-    var cycles : [Cycle]?
-    var genre : Genre?
+    var cycles : [String]?
 }
